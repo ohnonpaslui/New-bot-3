@@ -1,0 +1,51 @@
+name: Backtests strategies
+
+on:
+  schedule:
+    - cron: "0 6 * * *"        # tous les jours à 06:00 UTC (08:00 Paris)
+  workflow_dispatch:            # lancement manuel depuis l'onglet Actions
+
+permissions:
+  contents: write               # nécessaire pour commit les rapports
+
+jobs:
+  backtests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run backtests
+        run: |
+          mkdir -p reports
+          DATE=$(date +%F)
+          python backtest_ote_scalping.py      | tee reports/${DATE}_ote.txt
+          python backtest_fvg_ifvg.py          | tee reports/${DATE}_fvg_ifvg.txt
+          python backtest_fibo_volume_pivot.py | tee reports/${DATE}_fibo_volume.txt
+          # déplace les CSV de trades s'ils existent
+          for f in trades_*.csv; do
+            [ -e "$f" ] && mv "$f" "reports/${DATE}_$f"
+          done
+
+      - name: Commit reports
+        run: |
+          git config user.name  "backtest-bot"
+          git config user.email "actions@github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "Rapports backtests $(date +%F)"
+          git push
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-backtests
+          path: reports/
