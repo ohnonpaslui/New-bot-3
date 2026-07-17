@@ -1,0 +1,49 @@
+name: Bots scalping temps reel
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"      # nouvelle session toutes les 5 heures
+  workflow_dispatch:            # lancement manuel depuis l'onglet Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bots-live              # jamais deux sessions en parallèle
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330        # coupe-circuit (< limite GitHub de 6h)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Git config
+        run: |
+          git config user.name  "scalping-bots"
+          git config user.email "actions@github.com"
+
+      - name: Run bots (~5h)
+        env:
+          GIT_PUSH: "1"
+          MAX_RUNTIME: "17700"   # 4h55 : la session suivante prend le relais
+        run: python run_bots.py
+
+      - name: Commit final de securite
+        if: always()
+        run: |
+          git add state trades 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "Sauvegarde fin de session"
+          git pull --rebase || true
+          git push || true
