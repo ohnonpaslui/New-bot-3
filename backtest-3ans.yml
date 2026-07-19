@@ -1,0 +1,41 @@
+name: Backtest 3 ans
+
+on:
+  workflow_dispatch:            # lancement manuel depuis l'onglet Actions
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run backtest 3 ans
+        run: python backtest-3ans.py
+
+      - name: Commit resultats
+        run: |
+          git config user.name  "backtest-bot"
+          git config user.email "actions@github.com"
+          git add resultats-backtest/
+          git diff --cached --quiet || git commit -m "Backtest 3 ans $(date +%F)"
+          git push
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultats-backtest-3ans
+          path: resultats-backtest/
