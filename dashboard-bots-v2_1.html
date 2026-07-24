@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEW-BOT-3 · Console</title>
+<style>
+  :root{
+    --bg:#0f141c; --panel:#151c27; --panel2:#111823; --line:#26313f;
+    --txt:#d9e0ea; --dim:#7f8b9d; --faint:#55617355;
+    --ote:#e8a33d; --fvg:#4cc3d9; --fibo:#a78bfa;
+    --tp:#3fb97c; --sl:#e05d5d; --warn:#e8a33d;
+    --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:var(--mono);font-size:13px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:14px}
+
+  /* ---- barre haute ---- */
+  header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;
+         border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+  h1{font-size:15px;letter-spacing:.22em;font-weight:700}
+  h1 span{color:var(--dim);font-weight:400;letter-spacing:.1em}
+  .live{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+  .px{font-size:20px;font-weight:700}
+  .px small{font-size:11px;color:var(--dim);font-weight:400}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tp);
+       margin-right:5px;animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.dot{animation:none}}
+  .meta{color:var(--dim);font-size:11px}
+  button.refresh{background:none;border:1px solid var(--line);color:var(--txt);
+    font-family:var(--mono);font-size:11px;padding:4px 10px;cursor:pointer;border-radius:3px}
+  button.refresh:hover{border-color:var(--dim)}
+  button.refresh:focus-visible{outline:2px solid var(--fvg);outline-offset:2px}
+
+  #banner{display:none;background:#3a1c1c;border:1px solid var(--sl);color:#f2c4c4;
+          padding:10px 12px;border-radius:4px;margin-bottom:14px;font-size:12px}
+
+  /* ---- cartes bots ---- */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  @media(max-width:760px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:11px 13px;
+        border-top:2px solid var(--bot,#888)}
+  .card h2{font-size:12px;letter-spacing:.14em;color:var(--bot);display:flex;justify-content:space-between;align-items:center}
+  .card .cap{font-size:21px;font-weight:700;margin:5px 0 2px}
+  .card .sub{color:var(--dim);font-size:11px}
+  .pos{margin-top:8px;border-top:1px dashed var(--line);padding-top:7px;font-size:11px}
+  .pos .lbl{color:var(--dim)}
+  .rbar{height:5px;background:var(--panel2);border-radius:3px;margin-top:5px;position:relative;overflow:hidden}
+  .rbar i{position:absolute;top:0;bottom:0;border-radius:3px}
+  .flat{color:var(--dim);font-size:11px;margin-top:8px;border-top:1px dashed var(--line);padding-top:7px}
+
+  /* ---- graphique ---- */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:5px;margin-bottom:14px;overflow:hidden}
+  .panel .head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;
+               padding:9px 13px;border-bottom:1px solid var(--line)}
+  .panel .head b{font-size:11px;letter-spacing:.18em;color:var(--dim);font-weight:700}
+  .chips{display:flex;gap:6px}
+  .chip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:3px;cursor:pointer;
+        background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+  .chip.on{color:var(--c);border-color:var(--c)}
+  .chip:focus-visible{outline:2px solid var(--fvg);outline-offset:2px}
+  #chart{height:380px}
+  @media(max-width:760px){#chart{height:300px}}
+  #equity{height:170px}
+
+  /* ---- grille basse ---- */
+  .grid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th{color:var(--dim);text-align:left;font-weight:400;padding:7px 10px;border-bottom:1px solid var(--line);
+     letter-spacing:.08em;white-space:nowrap}
+  td{padding:6px 10px;border-bottom:1px solid #1c2531;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  .tscroll{overflow-x:auto;max-height:430px;overflow-y:auto}
+  .r-pos{color:var(--tp)} .r-neg{color:var(--sl)}
+  .bname{font-weight:700}
+
+  /* verdicts : le tampon d'inspection */
+  .stamp{display:inline-block;font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:2px;
+         border:1px solid;white-space:nowrap}
+  .v-tp{color:var(--tp);border-color:var(--tp)}
+  .v-frole{color:var(--warn);border-color:var(--warn)}
+  .v-rev{color:#d98c5f;border-color:#d98c5f}
+  .v-direct{color:var(--sl);border-color:var(--sl)}
+  .v-hors{color:var(--dim);border-color:var(--line)}
+
+  .side-b{color:var(--tp)} .side-s{color:var(--sl)}
+
+  /* autopsie + flux */
+  .box{padding:11px 13px}
+  .box h3{font-size:11px;letter-spacing:.18em;color:var(--dim);margin-bottom:8px;font-weight:700}
+  .abot{margin-bottom:12px}
+  .abot .t{font-size:12px;font-weight:700;margin-bottom:4px}
+  .bars{display:flex;height:9px;border-radius:3px;overflow:hidden;background:var(--panel2);margin-bottom:5px}
+  .bars i{height:100%}
+  .legend{font-size:10.5px;color:var(--dim);display:flex;flex-wrap:wrap;gap:9px}
+  .legend b{font-weight:400}
+  .insight{font-size:11px;color:var(--txt);background:var(--panel2);border-left:2px solid var(--warn);
+           padding:6px 9px;margin-top:6px;border-radius:0 3px 3px 0;white-space:normal}
+
+  #feed{max-height:330px;overflow-y:auto}
+  .ev{padding:6px 0;border-bottom:1px solid #1c2531;font-size:11.5px;display:flex;gap:9px}
+  .ev:last-child{border-bottom:none}
+  .ev time{color:var(--dim);flex:0 0 82px}
+  .ev .m{white-space:normal;word-break:break-word}
+  .empty{color:var(--dim);font-size:11.5px;padding:12px 0}
+  footer{color:var(--dim);font-size:10.5px;margin:16px 0 8px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>NEW-BOT-3 <span>/ console des bots · PAXG-USD · 5m</span></h1>
+    <div class="live">
+      <span class="px"><span class="dot"></span><span id="price">—</span> <small id="chg"></small></span>
+      <span class="meta">MàJ auto dans <span id="cd">60</span>s</span>
+      <button class="refresh" id="btnR">Actualiser</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <div class="head">
+      <b>MARCHÉ + TRADES (heure de Paris)</b>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div id="chart"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <div class="head"><b>JOURNAL DES TRADES</b><span class="meta" id="tcount"></span></div>
+        <div class="tscroll">
+          <table>
+            <thead><tr><th>Clôturé</th><th>Bot</th><th>Sens</th><th>Entrée</th><th>Résultat</th><th>R</th><th>PnL</th><th>Diagnostic</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="head"><b>COURBES DE CAPITAL</b></div>
+        <div id="equity"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel"><div class="box">
+        <h3>POURQUOI ÇA ÉCHOUE — AUTOPSIE DES SL</h3>
+        <div id="autopsy"></div>
+      </div></div>
+      <div class="panel"><div class="box">
+        <h3>FLUX DES DÉCISIONS (commits des bots)</h3>
+        <div id="feed"></div>
+      </div></div>
+    </div>
+  </div>
+
+  <footer>Fenêtre de bougies : ~2,5 jours (limite API Kraken). Les trades plus anciens restent au journal, diagnostic « hors fenêtre ». Paper trading, aucune donnée n'est un conseil d'investissement.</footer>
+</div>
+
+<script>
+/* ============================ CONFIG ============================ */
+const CFG = {
+  user:  "ohnonpaslui",
+  repo:  "New-bot-3",
+  branch:"HEAD",   // HEAD = branche par défaut du repo, quel que soit son nom
+  krakenPair:"PAXGUSD",     // secours : Binance PAXGUSDT
+};
+const BOTS = [
+  {id:"ote",         label:"OTE",         css:"--ote", color:"#e8a33d"},
+  {id:"fvg_ifvg",    label:"FVG-IFVG",    css:"--fvg", color:"#4cc3d9"},
+  {id:"fibo_volume", label:"FIBO-VOLUME", css:"--fibo",color:"#a78bfa"},
+];
+const RAW = p => `https://raw.githubusercontent.com/${CFG.user}/${CFG.repo}/${CFG.branch}/${p}?t=${Date.now()}`;
+
+/* ============================ ÉTAT ============================ */
+let candles=[], states={}, trades={}, visible={ote:true,fvg_ifvg:true,fibo_volume:true};
+let chart, series, eqChart, eqSeries={}, priceLines=[], lastPrice=null, feedTimer=0;
+
+/* ============================ OUTILS ============================ */
+const $ = id => document.getElementById(id);
+const fmt = (n,d=2)=> n==null?"—":Number(n).toFixed(d);
+const parisOffset = ms => {
+  const d=new Date(ms);
+  return (new Date(d.toLocaleString("en-US",{timeZone:"Europe/Paris"}))
+        - new Date(d.toLocaleString("en-US",{timeZone:"UTC"})))/1000;
+};
+const toChartTime = utcSec => utcSec + parisOffset(utcSec*1000);
+const tsToSec = s => Date.parse(String(s).replace(" ","T")+"Z")/1000;
+const hhmm = sec => new Date(sec*1000).toLocaleString("fr-FR",
+  {timeZone:"Europe/Paris",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/); if(lines.length<2) return [];
+  const head=lines[0].split(",");
+  return lines.slice(1).map(l=>{
+    const c=l.split(","), o={};
+    head.forEach((h,i)=>o[h]=c[i]);
+    ["entry","sl","tp","r","pnl","capital"].forEach(k=>o[k]=parseFloat(o[k]));
+    return o;
+  });
+}
+
+/* ============================ DONNÉES ============================ */
+async function fetchCandles(){
+  try{
+    const r=await fetch(`https://api.kraken.com/0/public/OHLC?pair=${CFG.krakenPair}&interval=5`);
+    const j=await r.json();
+    const key=Object.keys(j.result).find(k=>k!=="last");
+    return j.result[key].map(c=>({time:+c[0],open:+c[1],high:+c[2],low:+c[3],close:+c[4]}));
+  }catch(e){
+    const r=await fetch("https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=5m&limit=720");
+    const j=await r.json();
+    return j.map(c=>({time:c[0]/1000,open:+c[1],high:+c[2],low:+c[3],close:+c[4]}));
+  }
+}
+async function fetchBot(b){
+  const s=await fetch(RAW(`state/${b}.json`));
+  states[b]=s.ok?await s.json():null;   // absent = bot sans aucun événement encore
+  const t=await fetch(RAW(`trades/${b}.csv`));
+  trades[b]=t.ok?parseCSV(await t.text()):[];
+}
+async function fetchFeed(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${CFG.user}/${CFG.repo}/commits?per_page=30&sha=${CFG.branch}`);
+    if(!r.ok) return;
+    const j=await r.json();
+    const evts=[];
+    j.forEach(c=>{
+      const msg=c.commit.message, when=Date.parse(c.commit.author.date)/1000;
+      msg.split(" | ").forEach(m=>{
+        if(m.startsWith("[")) evts.push({when,m});
+      });
+    });
+    $("feed").innerHTML = evts.length ? evts.map(e=>{
+      const bot=BOTS.find(b=>e.m.startsWith(`[${b.id}]`));
+      const col=bot?bot.color:"var(--dim)";
+      return `<div class="ev"><time>${hhmm(e.when)}</time><span class="m" style="color:${col}">${e.m}</span></div>`;
+    }).join("") : `<div class="empty">Aucun événement récent. Les décisions apparaissent ici quand un bot ouvre ou clôture un trade.</div>`;
+  }catch(e){/* silencieux : quota API GitHub */}
+}
+
+/* ============================ DIAGNOSTIC ============================ */
+function diagnose(t){
+  const o=tsToSec(t.opened), c=tsToSec(t.closed);
+  if(t.result==="TP") return {cls:"v-tp",txt:"TP",mfe:null};
+  if(!candles.length || o<candles[0].time) return {cls:"v-hors",txt:"HORS FENÊTRE",mfe:null};
+  const seg=candles.filter(k=>k.time>o && k.time<=c);
+  if(!seg.length) return {cls:"v-hors",txt:"HORS FENÊTRE",mfe:null};
+  const risk=Math.abs(t.entry-t.sl); if(!risk) return {cls:"v-hors",txt:"—",mfe:null};
+  const mfe = t.side==="sell"
+    ? (t.entry - Math.min(...seg.map(k=>k.low )))/risk
+    : (Math.max(...seg.map(k=>k.high))-t.entry)/risk;
+  if(mfe>=1.2)  return {cls:"v-frole", txt:`A FRÔLÉ LE TP (+${mfe.toFixed(1)}R)`,mfe,kind:"frole"};
+  if(mfe>=0.5)  return {cls:"v-rev",   txt:`REVERSÉ EN ROUTE (+${mfe.toFixed(1)}R)`,mfe,kind:"rev"};
+  return {cls:"v-direct",txt:"SL DIRECT",mfe,kind:"direct"};
+}
+
+/* ============================ RENDUS ============================ */
+function renderCards(){
+  $("cards").innerHTML = BOTS.map(b=>{
+    const s=states[b.id]||{capital:1000,wins:0,losses:0,position:null,_new:true};
+    if(s._new) return `<div class="card" style="--bot:${b.color}">
+      <h2>${b.label}<span class="sub">0 trade</span></h2>
+      <div class="cap">${fmt(s.capital)} $</div>
+      <div class="sub">0 W / 0 L</div>
+      <div class="flat">Aucun signal déclenché pour l'instant — le bot tourne et attend son premier setup</div></div>`;
+    const n=(s.wins||0)+(s.losses||0);
+    const wr=n?Math.round(s.wins/n*100):null;
+    let posHtml=`<div class="flat">FLAT — en attente de signal</div>`;
+    const p=s.position;
+    if(p && lastPrice!=null){
+      const risk=Math.abs(p.entry-p.sl);
+      const prog = risk ? (p.side==="sell" ? (p.entry-lastPrice)/risk : (lastPrice-p.entry)/risk) : 0;
+      const pct=Math.max(-1,Math.min(p.rr||1.5,prog));
+      const w=Math.abs(pct)/(p.rr||1.5)*50;
+      const col=prog>=0?"var(--tp)":"var(--sl)";
+      posHtml=`<div class="pos">
+        <span class="${p.side==="buy"?"side-b":"side-s"}">${p.side.toUpperCase()}</span>
+        @ ${fmt(p.entry)} <span class="lbl">· SL ${fmt(p.sl)} · TP ${fmt(p.tp)}</span><br>
+        <span class="lbl">P&L latent :</span> <b style="color:${col}">${prog>=0?"+":""}${prog.toFixed(2)}R</b>
+        <div class="rbar"><i style="background:${col};left:${prog>=0?50:50-w}%;width:${w}%"></i>
+        <i style="left:50%;width:1px;background:var(--dim)"></i></div>
+      </div>`;
+    }
+    return `<div class="card" style="--bot:${b.color}">
+      <h2>${b.label}<span class="sub">${n} trades</span></h2>
+      <div class="cap">${fmt(s.capital)} $</div>
+      <div class="sub">${s.wins||0} W / ${s.losses||0} L${wr!=null?` · ${wr}% winrate`:""}</div>
+      ${posHtml}</div>`;
+  }).join("");
+}
+
+function renderChart(){
+  series.setData(candles.map(c=>({...c,time:toChartTime(c.time)})));
+  priceLines.forEach(pl=>series.removePriceLine(pl)); priceLines=[];
+  const markers=[];
+  BOTS.filter(b=>visible[b.id]).forEach(b=>{
+    (trades[b.id]||[]).forEach(t=>{
+      const o=tsToSec(t.opened), c=tsToSec(t.closed);
+      if(candles.length && o>=candles[0].time)
+        markers.push({time:toChartTime(o),
+          position:t.side==="buy"?"belowBar":"aboveBar",
+          shape:t.side==="buy"?"arrowUp":"arrowDown", color:b.color, text:b.label});
+      if(candles.length && c>=candles[0].time)
+        markers.push({time:toChartTime(c), position:"aboveBar", shape:"circle",
+          color:t.result==="TP"?"#3fb97c":"#e05d5d",
+          text:(t.r>0?"+":"")+Number(t.r).toFixed(1)+"R"});
+    });
+    const p=states[b.id]?.position;
+    if(p){
+      const os=tsToSec(p.opened_ts);
+      if(candles.length && os>=candles[0].time)
+        markers.push({time:toChartTime(os),
+          position:p.side==="buy"?"belowBar":"aboveBar",
+          shape:p.side==="buy"?"arrowUp":"arrowDown",color:b.color,text:b.label+" (ouvert)"});
+      [["ENTRY",p.entry,b.color,0],["SL",p.sl,"#e05d5d",2],["TP",p.tp,"#3fb97c",2]].forEach(([lb,v,col,st])=>{
+        priceLines.push(series.createPriceLine({price:v,color:col,lineWidth:1,lineStyle:st,
+          axisLabelVisible:true,title:`${b.label} ${lb}`}));
+      });
+    }
+  });
+  markers.sort((a,b)=>a.time-b.time);
+  series.setMarkers(markers);
+}
+
+function renderTable(){
+  const all=[];
+  BOTS.forEach(b=>(trades[b.id]||[]).forEach(t=>all.push({b,t})));
+  all.sort((a,z)=>tsToSec(z.t.closed)-tsToSec(a.t.closed));
+  $("tcount").textContent=`${all.length} clôturés`;
+  $("tbody").innerHTML = all.length ? all.slice(0,60).map(({b,t})=>{
+    const d=diagnose(t);
+    return `<tr>
+      <td>${hhmm(tsToSec(t.closed))}</td>
+      <td class="bname" style="color:${b.color}">${b.label}</td>
+      <td class="${t.side==="buy"?"side-b":"side-s"}">${t.side.toUpperCase()}</td>
+      <td>${fmt(t.entry)}</td>
+      <td class="${t.result==="TP"?"r-pos":"r-neg"}">${t.result}</td>
+      <td class="${t.r>0?"r-pos":"r-neg"}">${(t.r>0?"+":"")+fmt(t.r,1)}</td>
+      <td class="${t.pnl>0?"r-pos":"r-neg"}">${(t.pnl>0?"+":"")+fmt(t.pnl)} $</td>
+      <td><span class="stamp ${d.cls}">${d.txt}</span></td></tr>`;
+  }).join("") : `<tr><td colspan="8" class="empty">Aucun trade clôturé pour l'instant.</td></tr>`;
+}
+
+function renderAutopsy(){
+  $("autopsy").innerHTML = BOTS.map(b=>{
+    const sls=(trades[b.id]||[]).filter(t=>t.result==="SL");
+    if(!sls.length) return `<div class="abot"><div class="t" style="color:${b.color}">${b.label}</div>
+      <div class="legend">Aucun SL pour l'instant.</div></div>`;
+    const k={frole:0,rev:0,direct:0,hors:0};
+    sls.forEach(t=>{const d=diagnose(t); k[d.kind||"hors"]++;});
+    const n=sls.length, seg=(v,c)=>v?`<i style="width:${v/n*100}%;background:${c}"></i>`:"";
+    let insight="";
+    if(k.frole>=2 && k.frole>=k.direct)
+      insight=`${k.frole} SL sur ${n} avaient dépassé +1.2R avant de reverser : le TP à 1.5R laisse des gains en route. Piste : TP partiel ou break-even après +1R.`;
+    else if(k.direct>n/2)
+      insight=`${k.direct} SL sur ${n} sont partis direct contre le trade : le signal entre trop tôt ou le filtre de tendance ne suffit pas. Piste : confirmation supplémentaire avant l'entrée.`;
+    else if(k.rev>=Math.max(k.frole,k.direct) && k.rev>0)
+      insight=`La plupart des SL avancent puis reversent en range : le marché manque de suivi sur ces setups. Piste : filtre de sessions (Londres/NY), déjà dans ta liste v2.`;
+    const buys=sls.filter(t=>t.side==="buy").length;
+    return `<div class="abot">
+      <div class="t" style="color:${b.color}">${b.label} <span class="legend" style="display:inline">— ${n} SL (${buys} buy / ${n-buys} sell)</span></div>
+      <div class="bars">${seg(k.frole,"var(--warn)")}${seg(k.rev,"#d98c5f")}${seg(k.direct,"var(--sl)")}${seg(k.hors,"#3a4757")}</div>
+      <div class="legend"><b style="color:var(--warn)">■ a frôlé le TP ${k.frole}</b>
+        <b style="color:#d98c5f">■ reversé en route ${k.rev}</b>
+        <b style="color:var(--sl)">■ SL direct ${k.direct}</b>
+        <b>■ hors fenêtre ${k.hors}</b></div>
+      ${insight?`<div class="insight">${insight}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function renderEquity(){
+  BOTS.forEach(b=>{
+    const pts=[]; const seen={};
+    (trades[b.id]||[]).forEach(t=>{seen[tsToSec(t.closed)]=t.capital;});
+    Object.keys(seen).map(Number).sort((a,z)=>a-z).forEach(s=>pts.push({time:toChartTime(s),value:seen[s]}));
+    eqSeries[b.id].setData(pts);
+  });
+}
+
+/* ============================ CHARTS INIT ============================ */
+function initCharts(){
+  const base={layout:{background:{color:"#151c27"},textColor:"#7f8b9d",fontFamily:"ui-monospace, Menlo, monospace",fontSize:10},
+    grid:{vertLines:{color:"#1c2531"},horzLines:{color:"#1c2531"}},
+    timeScale:{timeVisible:true,secondsVisible:false,borderColor:"#26313f"},
+    rightPriceScale:{borderColor:"#26313f"},crosshair:{mode:0}};
+  chart=LightweightCharts.createChart($("chart"),base);
+  series=chart.addCandlestickSeries({upColor:"#3fb97c",downColor:"#e05d5d",
+    borderUpColor:"#3fb97c",borderDownColor:"#e05d5d",wickUpColor:"#3fb97c88",wickDownColor:"#e05d5d88"});
+  eqChart=LightweightCharts.createChart($("equity"),base);
+  BOTS.forEach(b=>{eqSeries[b.id]=eqChart.addLineSeries({color:b.color,lineWidth:2,priceLineVisible:false});});
+  new ResizeObserver(()=>{chart.applyOptions({width:$("chart").clientWidth});
+    eqChart.applyOptions({width:$("equity").clientWidth});}).observe($("chart"));
+}
+
+/* ============================ CYCLE ============================ */
+async function refresh(){
+  try{
+    $("banner").style.display="none";
+    const [cs]=await Promise.all([fetchCandles(),...BOTS.map(b=>fetchBot(b.id))]);
+    candles=cs;
+    if(BOTS.every(b=>!states[b.id])){
+      $("banner").style.display="block";
+      $("banner").textContent="Aucun fichier state/ accessible : vérifie que le repo "+CFG.repo+" est bien PUBLIC.";
+    }
+    const last=candles[candles.length-1], prev=candles[Math.max(0,candles.length-289)];
+    lastPrice=last.close;
+    $("price").textContent=fmt(last.close)+" $";
+    const chg=(last.close/prev.close-1)*100;
+    $("chg").textContent=(chg>=0?"+":"")+chg.toFixed(2)+"% / 24h";
+    $("chg").style.color=chg>=0?"var(--tp)":"var(--sl)";
+    renderCards(); renderChart(); renderTable(); renderAutopsy(); renderEquity();
+    if((feedTimer=(feedTimer+1)%5)===1) fetchFeed();
+  }catch(e){
+    $("banner").style.display="block";
+    $("banner").textContent = e.code===404
+      ? "Fichiers state/ introuvables : vérifie que le repo New-bot-3 est bien PUBLIC et que la branche est main."
+      : "Erreur de chargement ("+(e.message||e)+"). Nouvel essai à la prochaine actualisation.";
+  }
+}
+
+let cd=60;
+setInterval(()=>{cd--; if(cd<=0){cd=60; refresh();} $("cd").textContent=cd;},1000);
+$("btnR").onclick=()=>{cd=60; refresh();};
+
+$("chips").innerHTML=BOTS.map(b=>
+  `<button class="chip on" style="--c:${b.color}" data-b="${b.id}" aria-pressed="true">${b.label}</button>`).join("");
+document.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{
+  const id=ch.dataset.b; visible[id]=!visible[id];
+  ch.classList.toggle("on",visible[id]); ch.setAttribute("aria-pressed",visible[id]);
+  renderChart();
+});
+
+/* chargement de la lib de graphiques avec URLs de secours */
+(function loadLib(i){
+  const urls=[
+    "https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js",
+    "https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.1.3/lightweight-charts.standalone.production.min.js"];
+  if(i>=urls.length){$("banner").style.display="block";
+    $("banner").textContent="Impossible de charger la librairie de graphiques (CDN bloqué).";return;}
+  const s=document.createElement("script"); s.src=urls[i];
+  s.onload=()=>{ if(window.LightweightCharts){initCharts(); refresh();} else loadLib(i+1); };
+  s.onerror=()=>loadLib(i+1);
+  document.head.appendChild(s);
+})(0);
+</script>
+</body>
+</html>
