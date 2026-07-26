@@ -1,0 +1,9 @@
+actif,bot,trades,winrate_pct,buys,sells,total_r,avg_r,capital_final,rendement_pct,max_drawdown_pct,pire_serie_pertes,trades_ecartes_filtre
+paxg,fibo-candle,431,42.5,262,169,26.5,0.061,1255.84,25.6,21.0,8,509
+paxg,fibo-floor,825,47.5,486,339,155.0,0.188,4376.71,337.7,21.6,7,79
+btc,fibo-candle,975,39.3,477,498,-17.5,-0.018,773.17,-22.7,42.9,11,696
+btc,fibo-floor,1626,41.8,851,775,71.5,0.044,1777.73,77.8,38.7,15,33
+eth,fibo-candle,1554,38.3,738,816,-66.5,-0.043,451.54,-54.8,61.7,13,520
+eth,fibo-floor,2045,40.4,979,1066,20.0,0.01,1026.34,2.6,49.1,11,6
+sol,fibo-candle,1605,39.8,789,816,-7.5,-0.005,809.98,-19.0,53.2,11,319
+sol,fibo-floor,1908,41.0,926,982,47.0,0.025,1359.55,36.0,47.1,19,0
