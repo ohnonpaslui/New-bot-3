@@ -1,4 +1,4 @@
-bot,trades,wins,losses,winrate_pct,buys,sells,total_r,avg_r,capital_final,rendement_pct,max_drawdown_pct,pire_serie_pertes
-ote,4804,1615,3189,33.6,2614,2190,-766.5,-0.16,0.54,-99.9,100.0,39
-fvg-ifvg,4630,1391,3239,30.0,2362,2268,-1152.5,-0.249,0.53,-99.9,100.0,28
-fibo-volume,938,434,504,46.3,562,376,147.0,0.157,4002.51,300.3,27.2,8
+bot,trades,wins,losses,winrate_pct,buys,sells,total_r,avg_r,capital_final,rendement_pct,max_drawdown_pct,pire_serie_pertes,trades_ecartes_filtre
+ote,4313,1433,2880,33.2,2355,1958,-730.5,-0.169,0.52,-99.9,100.0,37,546
+fvg-ifvg,4631,1391,3240,30.0,2363,2268,-1153.5,-0.249,0.53,-99.9,100.0,28,0
+fibo-volume,431,183,248,42.5,262,169,26.5,0.061,1255.84,25.6,21.0,8,509
