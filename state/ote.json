@@ -1,6 +1,13 @@
 {
   "capital": 1216.15,
-  "position": null,
+  "position": {
+    "side": "buy",
+    "entry": 4414.52,
+    "sl": 4405.17762,
+    "tp": 4428.5335700000005,
+    "rr": 1.5,
+    "opened_ts": "2026-08-12 14:40:00"
+  },
   "wins": 26,
   "losses": 19
 }
