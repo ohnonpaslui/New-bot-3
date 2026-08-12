@@ -1,8 +1,24 @@
 name: Bots scalping temps reel
 
+#  ARRET DU LANCEMENT AUTOMATIQUE — 2026-08-12
+#
+#  Les trois strategies ont ete mesurees sur 73 instruments et 8 familles
+#  d'actifs (devises majeures et croisees, metaux, energie, agricole,
+#  indices, taux, crypto), soit 37 600 trades, avec des frais reels :
+#
+#      ote           -0,157 R par trade   0/8 familles positives
+#      fvg_ifvg      -0,134 R par trade   0/8 familles positives
+#      fibo_volume   -0,110 R par trade   1/6 familles positives
+#
+#  L'ampleur de la perte depasse ce que les frais expliquent : ces regles
+#  perdent avant meme d'etre executees. Le taux de reussite d'ote est de
+#  33,2 % alors qu'il en faut 40 pour un objectif a 1,5 fois le risque.
+#
+#  Le declencheur horaire est retire. `workflow_dispatch` reste : le
+#  lancement manuel depuis l'onglet Actions fonctionne toujours, et
+#  remettre la ligne `schedule` suffit a tout redemarrer.
+
 on:
-  schedule:
-    - cron: "0 */5 * * *"      # nouvelle session toutes les 5 heures
   workflow_dispatch:            # lancement manuel depuis l'onglet Actions
 
 permissions:
